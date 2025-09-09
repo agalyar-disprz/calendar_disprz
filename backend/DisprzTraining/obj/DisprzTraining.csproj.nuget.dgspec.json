@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\agalya.r_disprz\\Documents\\GitHub\\DisprzTraining\\DisprzTraining\\DisprzTraining.csproj": {}
+    "D:\\calendar_disprz\\backend\\DisprzTraining\\DisprzTraining.csproj": {}
   },
   "projects": {
-    "C:\\Users\\agalya.r_disprz\\Documents\\GitHub\\DisprzTraining\\DisprzTraining\\DisprzTraining.csproj": {
+    "D:\\calendar_disprz\\backend\\DisprzTraining\\DisprzTraining.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\agalya.r_disprz\\Documents\\GitHub\\DisprzTraining\\DisprzTraining\\DisprzTraining.csproj",
+        "projectUniqueName": "D:\\calendar_disprz\\backend\\DisprzTraining\\DisprzTraining.csproj",
         "projectName": "DisprzTraining",
-        "projectPath": "C:\\Users\\agalya.r_disprz\\Documents\\GitHub\\DisprzTraining\\DisprzTraining\\DisprzTraining.csproj",
+        "projectPath": "D:\\calendar_disprz\\backend\\DisprzTraining\\DisprzTraining.csproj",
         "packagesPath": "C:\\Users\\agalya.r_disprz\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\agalya.r_disprz\\Documents\\GitHub\\DisprzTraining\\DisprzTraining\\obj\\",
+        "outputPath": "D:\\calendar_disprz\\backend\\DisprzTraining\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\agalya.r_disprz\\AppData\\Roaming\\NuGet\\NuGet.Config"
