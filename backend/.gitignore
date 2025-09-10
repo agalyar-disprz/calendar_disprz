@@ -1,1 +1,11 @@
-.vs
+# Ignore build outputs
+*.dll
+*.exe
+*.pdb
+*.cache
+*.json
+*.db
+
+# Ignore Visual Studio stuff
+bin/
+obj/
