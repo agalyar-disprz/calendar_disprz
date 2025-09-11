@@ -4,5 +4,4 @@ export interface Appointment {
   startTime: string; // ISO string
   endTime: string;   // ISO string
   description?: string;
-  status?: "Confirmed" | "Pending" | "Conflict";
 }
