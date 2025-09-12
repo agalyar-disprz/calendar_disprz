@@ -13,7 +13,11 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DisprzTraining.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+<<<<<<< Updated upstream
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d95a6d218727458efa4002917f176a966cb921ec")]
+=======
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c9f8dd51976319c9e6f3304c3d4104523f4b0298")]
+>>>>>>> Stashed changes
 [assembly: System.Reflection.AssemblyProductAttribute("DisprzTraining.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DisprzTraining.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
