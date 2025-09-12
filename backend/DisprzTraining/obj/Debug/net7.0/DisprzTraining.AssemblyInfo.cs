@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DisprzTraining")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8539c7cef9067f3de0e8c26bf12f917e9e41f7e0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5548022bf3fc7bb15edaef23837cb80621bc3c37")]
 [assembly: System.Reflection.AssemblyProductAttribute("DisprzTraining")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DisprzTraining")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
