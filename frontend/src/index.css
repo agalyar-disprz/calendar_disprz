@@ -188,26 +188,31 @@ body {
 }
 
 /* Modal */
+/* Modal overlay - covers entire screen */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.5); /* dark backdrop */
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000; /* higher than timeline */
 }
 
+/* Modal box itself */
 .modal {
   background: #fff;
+  border-radius: 10px;
   padding: 20px;
-  border-radius: 12px;
   width: 400px;
   max-width: 90%;
-  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  z-index: 1001; /* ensure above overlay */
 }
+
 
 .modal-header {
   display: flex;
@@ -407,7 +412,7 @@ body {
   left: 0;
   right: 0;
   z-index: 10;
-  pointer-events: none; /* Allow clicking through the line */
+  pointer-events: none;
 }
 
 .current-time-dot {
@@ -444,6 +449,24 @@ body {
     box-shadow: 0 0 2px rgba(244, 67, 54, 0.3);
   }
 }
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 200px;
+}
+
+.no-appointments-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  color: #666;
+  font-style: italic;
+}
+
 
 /* Appointments container */
 .appointments-container {

@@ -1,27 +1,33 @@
-﻿using DisprzTraining.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using DisprzTraining.DataAccess;
+using DisprzTraining.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DisprzTraining.Controllers
 {
-    public class AppointmentsController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AppointmentsController : ControllerBase
     {
-        public AppointmentsController()
+        private readonly AppDbContext _context;
+
+        public AppointmentsController(AppDbContext context)
         {
+            _context = context;
         }
 
-        //design - GET /api/appointments
-        //- POST /api/appointments
-        //- DELETE /api/appointments
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
+        {
+            return await _context.Appointments.ToListAsync();
+        }
 
-        //refer hello world controller for BL & DAL logic 
-
-        //[HttpGet]
-        //[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Appointment))]
-        //[ProducesResponseType(StatusCodes.Status404NotFound)]
-        //public async Task<IActionResult> GerAppointments()
-        //{
-        //    return Ok();
-        //}
-
+        [HttpPost]
+        public async Task<ActionResult<Appointment>> Create(Appointment appointment)
+        {
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetAppointments), new { id = appointment.Id }, appointment);
+        }
     }
 }

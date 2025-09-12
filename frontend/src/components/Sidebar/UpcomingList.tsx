@@ -1,51 +1,57 @@
 import React, { useState, useEffect } from "react";
 import { Appointment } from "../../types/appointment";
-import { getMockAppointments } from "../../utils/mockAppointments";
 import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
 import { Alert } from "@mui/material";
 
 interface UpcomingListProps {
   searchTerm: string;
+  appointments: Appointment[];
 }
-const UpcomingList: React.FC<UpcomingListProps> = ({ searchTerm }) => {
-  const [meetings, setMeetings] = useState<Appointment[]>([]);
+
+const UpcomingList: React.FC<UpcomingListProps> = ({ searchTerm, appointments }) => {
   const [completedCount, setCompletedCount] = useState<number>(0);
 
   useEffect(() => {
-    const today = new Date();
-    const todaysMeetings = getMockAppointments(today);
-    setMeetings(todaysMeetings);
-
-    const now = new Date();
-    const completed = todaysMeetings.filter(
-      (meeting) => new Date(meeting.endTime) < now
-    ).length;
-    setCompletedCount(completed);
-
-    const timer = setInterval(() => {
-      const currentTime = new Date();
-      const updatedCompleted = todaysMeetings.filter(
-        (meeting) => new Date(meeting.endTime) < currentTime
+    const updateCompleted = () => {
+      const now = new Date();
+      const completed = appointments.filter(
+        (meeting) => new Date(meeting.endTime) < now
       ).length;
-      setCompletedCount(updatedCompleted);
-    }, 60000);
+      setCompletedCount(completed);
+    };
 
-    return () => clearInterval(timer);
-  }, []);
+    updateCompleted(); // initial calculation
 
-  // Sort meetings by start time
-  const sortedMeetings = [...meetings].sort(
-    (a, b) =>
-      new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    // ✅ Auto-update completed count every 1 min
+    const interval = setInterval(updateCompleted, 60000);
+    return () => clearInterval(interval);
+  }, [appointments]);
+
+  // ✅ Filter today's appointments only
+  const today = new Date();
+  const todayStart = new Date(today.setHours(0, 0, 0, 0));
+  const todayEnd = new Date(today.setHours(23, 59, 59, 999));
+
+  const todaysMeetings = appointments.filter((appointment) => {
+    const appointmentDate = new Date(appointment.startTime);
+    return appointmentDate >= todayStart && appointmentDate <= todayEnd;
+  });
+
+  // Sort by start time
+  const sortedMeetings = [...todaysMeetings].sort(
+    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
   );
 
-  // ✅ Apply search filter (title + time)
+  // Apply search filter
   const filteredMeetings = sortedMeetings.filter((meeting) => {
     const startTime = new Date(meeting.startTime);
     const formattedTime = `${startTime
       .getHours()
       .toString()
-      .padStart(2, "0")}:${startTime.getMinutes().toString().padStart(2, "0")}`;
+      .padStart(2, "0")}:${startTime
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
 
     return (
       meeting.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,13 +64,13 @@ const UpcomingList: React.FC<UpcomingListProps> = ({ searchTerm }) => {
     <div className="upcoming-list">
       <h3>Recent & Upcoming</h3>
 
-      {/* Hint Alert */}
+      {/* Completed counter */}
       <Alert
         icon={<LightbulbOutlinedIcon fontSize="small" />}
         severity="info"
         sx={{ mb: 2 }}
       >
-        {completedCount}/{meetings.length} meetings completed today
+        {completedCount}/{todaysMeetings.length} meetings completed today
       </Alert>
 
       <ul>
@@ -73,10 +79,7 @@ const UpcomingList: React.FC<UpcomingListProps> = ({ searchTerm }) => {
           const isCompleted = new Date(meeting.endTime) < new Date();
 
           return (
-            <li
-              key={meeting.id}
-              className={isCompleted ? "completed" : ""}
-            >
+            <li key={meeting.id} className={isCompleted ? "completed" : ""}>
               {startTime.getHours().toString().padStart(2, "0")}:
               {startTime.getMinutes().toString().padStart(2, "0")} -{" "}
               {meeting.title}

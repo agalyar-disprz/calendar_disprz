@@ -4,4 +4,13 @@ export interface Appointment {
   startTime: string; // ISO string
   endTime: string;   // ISO string
   description?: string;
+  location?: string;
+}
+
+export interface NewAppointment {
+  title: string;
+  startTime: string; // ISO string
+  endTime: string;   // ISO string
+  description?: string;
+  location?: string;
 }
