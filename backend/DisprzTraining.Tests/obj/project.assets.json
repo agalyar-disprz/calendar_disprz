@@ -10903,11 +10903,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\agalya.r_disprz\\Documents\\GitHub\\DisprzTraining\\DisprzTraining.Tests\\DisprzTraining.Tests.csproj",
+      "projectUniqueName": "D:\\calendar_disprz\\backend\\DisprzTraining.Tests\\DisprzTraining.Tests.csproj",
       "projectName": "DisprzTraining.Tests",
-      "projectPath": "C:\\Users\\agalya.r_disprz\\Documents\\GitHub\\DisprzTraining\\DisprzTraining.Tests\\DisprzTraining.Tests.csproj",
+      "projectPath": "D:\\calendar_disprz\\backend\\DisprzTraining.Tests\\DisprzTraining.Tests.csproj",
       "packagesPath": "C:\\Users\\agalya.r_disprz\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\agalya.r_disprz\\Documents\\GitHub\\DisprzTraining\\DisprzTraining.Tests\\obj\\",
+      "outputPath": "D:\\calendar_disprz\\backend\\DisprzTraining.Tests\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\agalya.r_disprz\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -10922,8 +10922,8 @@
         "net7.0": {
           "targetAlias": "net7.0",
           "projectReferences": {
-            "C:\\Users\\agalya.r_disprz\\Documents\\GitHub\\DisprzTraining\\DisprzTraining\\DisprzTraining.csproj": {
-              "projectPath": "C:\\Users\\agalya.r_disprz\\Documents\\GitHub\\DisprzTraining\\DisprzTraining\\DisprzTraining.csproj"
+            "D:\\calendar_disprz\\backend\\DisprzTraining\\DisprzTraining.csproj": {
+              "projectPath": "D:\\calendar_disprz\\backend\\DisprzTraining\\DisprzTraining.csproj"
             }
           }
         }
@@ -10979,20 +10979,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[7.0.20, 7.0.20]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[7.0.20, 7.0.20]"
-          },
-          {
-            "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[7.0.20, 7.0.20]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
