@@ -1,13 +1,603 @@
-body {
+/* 🌍 Global Reset */
+* {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Roboto", sans-serif;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+  background: #f5f7fa;
+  color: #333;
+}
+
+/* Layout */
+.calendar-app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 300px;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  padding: 20px;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+}
+
+/* Date Header */
+.date-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.date-header h2 {
+  flex: 1;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+/* Nav buttons */
+.nav-btn {
+  border: none;
+  background: none;
+  color: #147dce;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.nav-btn:hover {
+  transform: scale(1.2);
+}
+
+/* New Appointment Button */
+.new-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #147dce;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.3s;
+}
+
+.new-btn:hover {
+  background: #0f65a8;
+}
+
+/* Dropdown & Today Button Container */
+.view-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* View Dropdown */
+.view-select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #147dce;
+  background: #fff;
+  color: #147dce; /* ✅ blue text */
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  appearance: none; /* removes browser default arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23147dce' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 28px; /* space for arrow */
+}
+
+.view-select:hover {
+  background: #f0f8ff;
+  border-color: #0f65a8;
+}
+
+/* ✅ Selected option stays blue */
+.view-select option {
+  color: #147dce;
+  font-weight: 500;
+}
+
+/* Today Button */
+.today-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #147dce;
+  background: #fff;
+  color: #147dce;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.today-btn:hover {
+  background: #147dce;
+  color: #fff;
+}
+
+/* Mini Calendar */
+.mini-calendar {
+  margin-bottom: 30px;
+}
+
+.mini-calendar h3 {
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Upcoming List */
+.upcoming-list h3 {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.upcoming-list ul {
+  list-style: none;
+}
+
+.upcoming-list li {
+  background: #f0f6ff;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+/* Timeline View */
+.timeline-view h3 {
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.timeline-view{
+  background: #fff;
+  border-left: 4px solid #147dce;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.timeline-view {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.timeline-view  {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* Modal */
+/* Modal overlay - covers entire screen */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* dark backdrop */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* higher than timeline */
+}
+
+/* Modal box itself */
+.modal {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  z-index: 1001; /* ensure above overlay */
+}
+
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.close-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: #e53935;
+}
+
+.modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal input,
+.modal textarea {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.save-btn {
+  background: #147dce;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: #0f65a8;
+}
+
+.cancel-btn {
+  background: #ccc;
+  color: #333;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background: #aaa;
+}
+.mini-calendar {
+  width: 100%;
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.calendar-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.calendar-nav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+}
+
+.calendar-nav-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.calendar-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.calendar-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.calendar-day-name {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #777;
+}
+
+.calendar-day {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 50%;
+  margin: 2px;
+}
+
+.calendar-day:hover {
+  background-color: #f0f0f0;
+}
+
+.calendar-day.empty {
+  cursor: default;
+}
+
+.calendar-day.today {
+  background-color: #e6f7ff;
+  font-weight: bold;
+}
+
+.calendar-day.selected {
+  background-color: #1976d2;
+  color: white;
+}
+
+.timeline-view {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding: 15px;
+}
+
+.timeline-container {
+  position: relative;
+  min-height: 1200px; /* 15 hours (8 AM to 11 PM) * 60 minutes * 1.25px per minute */
+}
+
+/* Hours timeline styling */
+.timeline-hours {
+  position: relative;
+  width: 100%;
+}
+
+.timeline-hour {
+  position: relative;
+  height: 75px; /* 60 minutes * 1.25px per minute */
+  margin-bottom: 0;
+}
+
+.hour-label {
+  position: absolute;
+  left: 0;
+  top: -8px;
+  font-size: 0.75rem;
+  color: #666;
+  width: 50px;
+}
+
+.hour-line {
+  position: absolute;
+  left: 60px;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background-color: #e0e0e0;
+}
+
+/* Current time indicator - enhanced red line */
+.current-time-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.current-time-dot {
+  position: absolute;
+  left: 60px;
+  width: 10px;
+  height: 10px;
+  background-color: #f44336;
+  border-radius: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  box-shadow: 0 0 4px rgba(244, 67, 54, 0.5);
+}
+
+.current-time-line {
+  position: absolute;
+  left: 60px;
+  right: 0;
+  height: 2px;
+  background-color: #f44336;
+  animation: pulseLine 2s infinite;
+}
+
+@keyframes pulseLine {
+  0% {
+    opacity: 0.7;
+    box-shadow: 0 0 2px rgba(244, 67, 54, 0.3);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 4px rgba(244, 67, 54, 0.5);
+  }
+  100% {
+    opacity: 0.7;
+    box-shadow: 0 0 2px rgba(244, 67, 54, 0.3);
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 200px;
+}
+
+.no-appointments-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  color: #666;
+  font-style: italic;
+}
+
+
+/* Appointments container */
+.appointments-container {
+  position: absolute;
+  top: 0;
+  left: 70px;
+  right: 15px;
+  height: 100%;
+}
+
+.appointment-wrapper {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.appointment-wrapper:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16), 0 2px 4px rgba(0, 0, 0, 0.23);
+}
+
+/* Appointment card styling */
+.appointment-card {
+  background-color: #fff;
+  padding: 8px;
+  height: 100%;
+  border-left: 3px solid #2196f3;
+  display: flex;
+  flex-direction: column;
+}
+
+.appointment-time {
+  font-size: 0.7rem;
+  color: #666;
+  margin-bottom: 3px;
+}
+
+.appointment-content {
+  flex: 1;
+}
+
+.appointment-content h4 {
+  margin: 0 0 3px 0;
+  font-size: 0.9rem;
+}
+
+.appointment-content p {
+  margin: 0;
+  font-size: 0.7rem;
+  color: #666;
+}
+
+.appointment-status {
+  font-size: 0.65rem;
+  padding: 1px 4px;
+  border-radius: 8px;
+  display: inline-block;
+  margin-top: 3px;
+  background-color: #e0e0e0;
+}
+
+.status-confirmed .appointment-status {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-pending .appointment-status {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.status-conflict .appointment-status {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+/* Container list reset */
+.upcoming-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Each meeting box */
+.upcoming-list li {
+  background: #f9fbff;          /* light white box */
+  color: #147dce ;            /* blue text */
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s ease;
+}
+
+/* Hover effect (optional) */
+.upcoming-list li:hover {
+  background: #eef5ff;
+}
+
+/* Completed meetings */
+.upcoming-list .completed {
+  color: #147DFF;          
+  opacity: 0.6;            
+  pointer-events: none;    
+  position: relative;
+}
+
+/* Blue tick mark for completed */
+.upcoming-list .completed::before {
+  content: "✔";
+  color: #147DFF;
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+.meeting-progress {
+  margin: 8px 0 16px 0; /* space above and below */
+}
+
+.meeting-progress .hint {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #555;          /* softer hint-like color */
+  background: #f9f9f9;  /* light background to look like a note */
+  padding: 6px 10px;
+  border-radius: 8px;
 }

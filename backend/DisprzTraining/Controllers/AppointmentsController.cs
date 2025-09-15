@@ -1,27 +1,69 @@
-﻿using DisprzTraining.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using DisprzTraining.Data;
+using DisprzTraining.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace DisprzTraining.Controllers
 {
-    public class AppointmentsController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize] // Add authorization to ensure user is authenticated
+    public class AppointmentsController : ControllerBase
     {
-        public AppointmentsController()
+        private readonly AppDbContext _context;
+
+        public AppointmentsController(AppDbContext context)
         {
+            _context = context;
         }
 
-        //design - GET /api/appointments
-        //- POST /api/appointments
-        //- DELETE /api/appointments
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
+        {
+            try
+            {
+                // Use AsNoTracking for better performance on read-only queries
+                return await _context.Appointments
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
-        //refer hello world controller for BL & DAL logic 
+        [HttpPost]
+public async Task<ActionResult<Appointment>> Create(Appointment appointment)
+{
+    try
+    {
+        // Look for the NameIdentifier claim which contains the user ID
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            appointment.UserId = userId;
+        }
+        else
+        {
+            return BadRequest("User ID not found in token");
+        }
+        
+        _context.Appointments.Add(appointment);
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetAppointments), new { id = appointment.Id }, appointment);
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, $"Internal server error: {ex.Message}");
+    }
+}
 
-        //[HttpGet]
-        //[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Appointment))]
-        //[ProducesResponseType(StatusCodes.Status404NotFound)]
-        //public async Task<IActionResult> GerAppointments()
-        //{
-        //    return Ok();
-        //}
+
 
     }
 }
