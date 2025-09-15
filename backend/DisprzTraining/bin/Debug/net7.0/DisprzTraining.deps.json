@@ -8,10 +8,13 @@
     ".NETCoreApp,Version=v7.0": {
       "DisprzTraining/1.0.0": {
         "dependencies": {
+          "BCrypt.Net-Next": "4.0.3",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "7.0.17",
           "Microsoft.AspNetCore.OpenApi": "7.0.0",
           "Microsoft.EntityFrameworkCore": "7.0.17",
           "Microsoft.EntityFrameworkCore.Design": "7.0.17",
           "Microsoft.EntityFrameworkCore.SqlServer": "7.0.17",
+          "Microsoft.EntityFrameworkCore.Tools": "7.0.17",
           "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": "1.17.0",
           "Microsoft.VisualStudio.Web.CodeGeneration.Design": "7.0.0",
           "Swashbuckle.AspNetCore": "6.4.0"
@@ -54,6 +57,14 @@
           }
         }
       },
+      "BCrypt.Net-Next/4.0.3": {
+        "runtime": {
+          "lib/net6.0/BCrypt.Net-Next.dll": {
+            "assemblyVersion": "4.0.3.0",
+            "fileVersion": "4.0.3.0"
+          }
+        }
+      },
       "Humanizer.Core/2.14.1": {
         "runtime": {
           "lib/net6.0/Humanizer.dll": {
@@ -88,6 +99,17 @@
         }
       },
       "MessagePackAnalyzer/2.1.152": {},
+      "Microsoft.AspNetCore.Authentication.JwtBearer/7.0.17": {
+        "dependencies": {
+          "Microsoft.IdentityModel.Protocols.OpenIdConnect": "6.35.0"
+        },
+        "runtime": {
+          "lib/net7.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll": {
+            "assemblyVersion": "7.0.17.0",
+            "fileVersion": "7.0.1724.11613"
+          }
+        }
+      },
       "Microsoft.AspNetCore.OpenApi/7.0.0": {
         "dependencies": {
           "Microsoft.OpenApi": "1.4.3"
@@ -984,6 +1006,11 @@
             "assemblyVersion": "7.0.17.0",
             "fileVersion": "7.0.1724.11506"
           }
+        }
+      },
+      "Microsoft.EntityFrameworkCore.Tools/7.0.17": {
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Design": "7.0.17"
         }
       },
       "Microsoft.Extensions.ApiDescription.Server/6.0.5": {},
@@ -2423,6 +2450,13 @@
       "path": "azure.identity/1.10.3",
       "hashPath": "azure.identity.1.10.3.nupkg.sha512"
     },
+    "BCrypt.Net-Next/4.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-W+U9WvmZQgi5cX6FS5GDtDoPzUCV4LkBLkywq/kRZhuDwcbavOzcDAr3LXJFqHUi952Yj3LEYoWW0jbEUQChsA==",
+      "path": "bcrypt.net-next/4.0.3",
+      "hashPath": "bcrypt.net-next.4.0.3.nupkg.sha512"
+    },
     "Humanizer.Core/2.14.1": {
       "type": "package",
       "serviceable": true,
@@ -2450,6 +2484,13 @@
       "sha512": "sha512-uJhZlGMkXDaFYsH8V9S6o1EyvsUqB9mpU4DVBXNr0DXZVzZMhuLP1IkLj5xK3EKlaAcvkFkZv3eSvuz360wb3Q==",
       "path": "messagepackanalyzer/2.1.152",
       "hashPath": "messagepackanalyzer.2.1.152.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.Authentication.JwtBearer/7.0.17": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-QNv4f4RZBn2wyHz6zWjfK0lkDegavgeg0lGlQD4eSUY7tts+j4svv0vpDORrq4FnhQUZU+abtsvtmJI/QI6K4Q==",
+      "path": "microsoft.aspnetcore.authentication.jwtbearer/7.0.17",
+      "hashPath": "microsoft.aspnetcore.authentication.jwtbearer.7.0.17.nupkg.sha512"
     },
     "Microsoft.AspNetCore.OpenApi/7.0.0": {
       "type": "package",
@@ -2667,6 +2708,13 @@
       "sha512": "sha512-GVEe9+EI3dcPhdXbprYtqmECi2ZVt37U+rjRbIyehoAVtTVAG89sIsz4PcuyfQjnsNvmPFKwToOJteQeSwCj9w==",
       "path": "microsoft.entityframeworkcore.sqlserver/7.0.17",
       "hashPath": "microsoft.entityframeworkcore.sqlserver.7.0.17.nupkg.sha512"
+    },
+    "Microsoft.EntityFrameworkCore.Tools/7.0.17": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-/2BQZU0aALScLFrQE4omnjB84/+8BFViTAHRlL36Mu8M5XurjxqESsDOcZvRJnB/GecQH219Dt+mJHjGjh82qg==",
+      "path": "microsoft.entityframeworkcore.tools/7.0.17",
+      "hashPath": "microsoft.entityframeworkcore.tools.7.0.17.nupkg.sha512"
     },
     "Microsoft.Extensions.ApiDescription.Server/6.0.5": {
       "type": "package",

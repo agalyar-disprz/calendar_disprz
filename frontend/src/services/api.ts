@@ -1,22 +1,64 @@
 import axios from 'axios';
-import { Appointment, NewAppointment } from "../types/appointment";
+import { Appointment, NewAppointment } from '../types/appointment';
+import { User, RegisterFormData, LoginFormData } from '../types/auth';
 
-// Get API URL from environment variables or use a default
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5169/api";
+const API_URL = 'http://localhost:5169/api';
 
-// Create axios instance
-const API = axios.create({
-  baseURL: API_URL,
-});
+// Configure axios defaults
+axios.interceptors.request.use(
+  config => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  error => Promise.reject(error)
+);
 
-// Fetch all appointments
-export const fetchAppointments = () => {
-  return API.get<Appointment[]>("/appointments");
+// Auth API calls
+export const register = async (userData: RegisterFormData) => {
+  return axios.post<User>(`${API_URL}/auth/register`, userData);
 };
 
-// Add new appointment
-export const addAppointment = (appointment: NewAppointment) => {
-  return API.post<Appointment>("/appointments", appointment);
+export const login = async (userData: LoginFormData) => {
+  const response = await axios.post<User>(`${API_URL}/auth/login`, userData);
+  if (response.data && response.data.token) {
+    localStorage.setItem('token', response.data.token);
+  }
+  return response;
 };
 
-export default API;
+export const getCurrentUser = async () => {
+  return axios.get<User>(`${API_URL}/auth/current`);
+};
+
+export const logout = () => {
+  localStorage.removeItem('token');
+};
+
+// Appointment API calls
+export const fetchAppointments = async () => {
+  return axios.get<Appointment[]>(`${API_URL}/appointments`);
+};
+
+export const addAppointment = async (appointment: NewAppointment) => {
+  return axios.post<Appointment>(`${API_URL}/appointments`, appointment);
+};
+
+export const updateAppointment = async (id: number, appointment: Partial<Appointment>) => {
+  return axios.put<Appointment>(`${API_URL}/appointments/${id}`, appointment);
+};
+
+export const deleteAppointment = async (id: number) => {
+  return axios.delete(`${API_URL}/appointments/${id}`);
+};
+
+// Helper function to set auth token
+export const setAuthToken = (token: string | null) => {
+  if (token) {
+    localStorage.setItem('token', token);
+  } else {
+    localStorage.removeItem('token');
+  }
+};
