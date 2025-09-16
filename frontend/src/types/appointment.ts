@@ -5,6 +5,7 @@ export interface Appointment {
   endTime: string;   // ISO string
   description?: string;
   location?: string;
+  attendees?: string; 
 }
 
 export interface NewAppointment {
@@ -13,4 +14,5 @@ export interface NewAppointment {
   endTime: string;   // ISO string
   description?: string;
   location?: string;
+  attendees?: string; 
 }
