@@ -59,6 +59,7 @@ export const addAppointment = async (appointment: NewAppointment): Promise<{ dat
       description: appointment.description || '',
       location: appointment.location || '',
       attendees: appointment.attendees || ''
+      , type: appointment.type || 'other' // Default to 'other' if not provided
     };
     
     console.log('Sending appointment data:', appointmentData);
@@ -134,6 +135,7 @@ export const updateAppointment = async (id: number, appointment: Partial<Appoint
     if (appointmentData.description !== undefined) updatePayload.description = appointmentData.description;
     if (appointmentData.location !== undefined) updatePayload.location = appointmentData.location;
     if (appointmentData.attendees !== undefined) updatePayload.attendees = appointmentData.attendees;
+    if (appointmentData.type !== undefined) updatePayload.type = appointmentData.type;
     
     // Send dates as-is without timezone conversion
     if (appointmentData.startTime !== undefined) {

@@ -2,14 +2,13 @@ import React, { useState, useEffect } from "react";
 import DateHeader from "../components/Header/DateHeader";
 import MiniCalendar from "../components/Sidebar/MiniCalendar";
 import UpcomingList from "../components/Sidebar/UpcomingList";
-import SearchBar from "../components/Sidebar/SearchBar"; // Add this import
+import SearchBar from "../components/Sidebar/SearchBar";
 import TimelineView from "../components/DayView/TimelineView";
 import WeekView from "../components/Header/WeekView";
 import MonthView from "../components/Header/MonthView";
 import AppointmentModal from "../components/Modal/AppointmentModal";
-
 import { fetchAppointments, deleteAppointment } from "../services/api";
-import { Appointment } from "../types/appointment";
+import { Appointment, APPOINTMENT_TYPES } from "../types/appointment";
 
 const CalendarPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
@@ -20,8 +19,15 @@ const CalendarPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
-
-  // ✅ Fetch appointments when selected date changes
+  // Add state for sidebar toggle
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
+  // Initialize with all appointment types selected
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(
+    APPOINTMENT_TYPES.map(type => type.id)
+  );
+  
+  // Fetch appointments when selected date changes
   useEffect(() => {
     const loadAppointments = async () => {
       setIsLoading(true);
@@ -34,15 +40,55 @@ const CalendarPage: React.FC = () => {
         setIsLoading(false);
       }
     };
-
+    
     loadAppointments();
-
-    // ✅ Auto-refresh every 30 seconds
+    
+    // Auto-refresh every 30 seconds
     const interval = setInterval(loadAppointments, 30000);
     return () => clearInterval(interval);
   }, [selectedDate]);
 
-  // ✅ Handle saving a new appointment or updating an existing one
+  // Add toggle sidebar function
+const toggleSidebar = () => {
+  setIsSidebarOpen(prev => !prev);
+  // Also toggle overlay class
+  const overlay = document.querySelector('.sidebar-overlay');
+  if (overlay) {
+    if (!isSidebarOpen) {
+      overlay.classList.add('visible');
+    } else {
+      overlay.classList.remove('visible');
+    }
+  }
+};
+
+  // Filter appointments for the UpcomingList only
+  const filteredUpcomingAppointments = appointments.filter(appointment => {
+    // Filter by type
+    const typeMatch = !appointment.type || selectedTypes.includes(appointment.type);
+    
+    // Filter by search term
+    if (!searchTerm) return typeMatch;
+    
+    const search = searchTerm.toLowerCase();
+    return typeMatch && (
+      appointment.title.toLowerCase().includes(search) ||
+      (appointment.location && appointment.location.toLowerCase().includes(search)) ||
+      (appointment.description && appointment.description.toLowerCase().includes(search)) ||
+      (appointment.attendees && appointment.attendees.toLowerCase().includes(search))
+    );
+  });
+
+  // Handle toggling appointment type filters
+  const handleTypeToggle = (type: string) => {
+    setSelectedTypes(prev =>
+      prev.includes(type)
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    );
+  };
+
+  // Handle saving a new appointment or updating an existing one
   const handleSaveAppointment = (appointmentData: Appointment) => {
     if (isEditing && selectedAppointment) {
       // Update existing appointment in the state
@@ -58,20 +104,20 @@ const CalendarPage: React.FC = () => {
     fetchAppointments()
       .then(response => setAppointments(response.data))
       .catch(error => console.error("Failed to refresh appointments:", error));
-      
+    
     // Reset editing state
     setIsEditing(false);
     setSelectedAppointment(undefined);
   };
 
-  // ✅ Handle editing an appointment
+  // Handle editing an appointment
   const handleEditAppointment = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setIsEditing(true);
     setShowModal(true);
   };
 
-  // ✅ Handle deleting an appointment
+  // Handle deleting an appointment
   const handleDeleteAppointment = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this appointment?")) {
       try {
@@ -130,13 +176,14 @@ const CalendarPage: React.FC = () => {
     if (isLoading) {
       return <div className="loading-container">Loading...</div>;
     }
-
+    
+    // Use unfiltered appointments for the calendar views
     switch (view) {
       case "day":
         return (
           <TimelineView
             selectedDate={selectedDate}
-            appointments={appointments}
+            appointments={appointments} // Use unfiltered appointments
             isLoading={isLoading}
             onEdit={handleEditAppointment}
             onDelete={handleDeleteAppointment}
@@ -146,7 +193,7 @@ const CalendarPage: React.FC = () => {
         return (
           <WeekView
             selectedDate={selectedDate}
-            appointments={appointments}
+            appointments={appointments} // Use unfiltered appointments
             onEdit={handleEditAppointment}
             onDelete={handleDeleteAppointment}
           />
@@ -155,7 +202,7 @@ const CalendarPage: React.FC = () => {
         return (
           <MonthView
             selectedDate={selectedDate}
-            appointments={appointments}
+            appointments={appointments} // Use unfiltered appointments
             onEdit={handleEditAppointment}
             onDelete={handleDeleteAppointment}
           />
@@ -167,29 +214,34 @@ const CalendarPage: React.FC = () => {
 
   return (
     <div className="calendar-app">
-      {/* Sidebar */}
-      <aside className="sidebar">
+      {/* Sidebar - add conditional class based on isSidebarOpen */}
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
         <MiniCalendar
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
         />
         
-        {/* Replace the existing search box with SearchBar component */}
+        {/* SearchBar with type filtering - only affects UpcomingList */}
         <SearchBar
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
-          placeholder="Search by title, attendee, location..."
+          placeholder="Search upcoming appointments..."
+          selectedTypes={selectedTypes}
+          onTypeToggle={handleTypeToggle}
         />
         
-        {/* ✅ Pass appointments and handlers into UpcomingList */}
+        {/* Pass filtered appointments to UpcomingList */}
         <UpcomingList
           searchTerm={searchTerm}
-          appointments={appointments}
+          appointments={filteredUpcomingAppointments} // Use filtered appointments
           onEdit={handleEditAppointment}
           onDelete={handleDeleteAppointment}
         />
       </aside>
+      {/* Add this overlay for mobile */}
+      <div className="sidebar-overlay" onClick={toggleSidebar}></div>
 
+      
       {/* Main content */}
       <main className="main-content">
         <DateHeader
@@ -208,11 +260,14 @@ const CalendarPage: React.FC = () => {
           onToday={handleToday}
           view={view}
           onViewChange={setView}
+          appointments={appointments} // Use unfiltered appointments
+          toggleSidebar={toggleSidebar} // Add this prop
+          isSidebarOpen={isSidebarOpen} // Add this prop
         />
         
         {renderCalendarView()}
       </main>
-
+      
       {showModal && (
         <AppointmentModal
           onClose={() => {

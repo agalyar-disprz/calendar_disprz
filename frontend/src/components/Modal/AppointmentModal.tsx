@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import { addAppointment, updateAppointment } from "../../services/api";
-import { Appointment } from "../../types/appointment";
+import { Appointment, APPOINTMENT_TYPES, getAppointmentColor } from "../../types/appointment";
 import { CircularProgress, Alert } from "@mui/material";
 
 interface Props {
@@ -28,7 +28,8 @@ const AppointmentModal: React.FC<Props> = ({
     startTime: "",
     endTime: "",
     location: "",
-    attendees: "" // Add attendees field
+    attendees: "", // Add attendees field
+    type: APPOINTMENT_TYPES[0].id // Default type
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,7 +57,8 @@ const AppointmentModal: React.FC<Props> = ({
         startTime: `${String(startDate.getHours()).padStart(2, "0")}:${String(startDate.getMinutes()).padStart(2, "0")}`,
         endTime: `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`,
         location: appointment.location || "",
-        attendees: appointment.attendees || "" // Include attendees
+        attendees: appointment.attendees || "", // Include attendees
+        type: appointment.type || APPOINTMENT_TYPES[0].id // Include type with default
       });
     } else {
       // For new appointments, set default times (current hour to next hour)
@@ -80,12 +82,13 @@ const AppointmentModal: React.FC<Props> = ({
         startTime: `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`,
         endTime: `${String(endHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`,
         location: "",
-        attendees: "" // Initialize attendees
+        attendees: "", // Initialize attendees
+        type: APPOINTMENT_TYPES[0].id // Default type
       });
     }
   }, [isEditing, appointment, currentHour, currentMinute]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     
@@ -135,11 +138,40 @@ const AppointmentModal: React.FC<Props> = ({
     return true;
   };
 
+  // Validate attendees
+  const validateAttendees = (attendeesString: string): boolean => {
+    if (!attendeesString.trim()) return true; // Empty attendees is valid
+    
+    const attendees = attendeesString.split(',').map(a => a.trim()).filter(a => a);
+    
+    // Check for duplicate attendees
+    const uniqueAttendees = new Set(attendees);
+    if (uniqueAttendees.size !== attendees.length) {
+      setError("Duplicate attendees found");
+      return false;
+    }
+    
+    // Validate email format if needed
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const invalidEmails = attendees.filter(a => a.includes('@') && !emailRegex.test(a));
+    if (invalidEmails.length > 0) {
+      setError(`Invalid email format: ${invalidEmails.join(', ')}`);
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate times before submission
     if (!validateTimes()) {
+      return;
+    }
+    
+    // Validate attendees before submission
+    if (!validateAttendees(formData.attendees)) {
       return;
     }
     
@@ -154,7 +186,8 @@ const AppointmentModal: React.FC<Props> = ({
         startTime: formatLocalDateTime(selectedDate, formData.startTime),
         endTime: formatLocalDateTime(selectedDate, formData.endTime),
         location: formData.location || "",
-        attendees: formData.attendees || "" // Include attendees
+        attendees: formData.attendees || "", // Include attendees
+        type: formData.type // Include type
       };
       
       let response;
@@ -194,6 +227,9 @@ const AppointmentModal: React.FC<Props> = ({
           setError(errorData);
         } else if (errorData.message) {
           setError(errorData.message);
+        } else if (errorData.errors && errorData.errors.type) {
+          // Handle the specific "Type field is required" error
+          setError(`Type is required: ${errorData.errors.type[0]}`);
         } else {
           setError(JSON.stringify(errorData));
         }
@@ -207,8 +243,8 @@ const AppointmentModal: React.FC<Props> = ({
   };
 
   return (
-    <div 
-      className="modal-overlay" 
+    <div
+      className="modal-overlay"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -231,8 +267,8 @@ const AppointmentModal: React.FC<Props> = ({
         
         {/* Display error with appropriate styling */}
         {error && (
-          <div 
-            className="error-message" 
+          <div
+            className="error-message"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -263,6 +299,52 @@ const AppointmentModal: React.FC<Props> = ({
             />
           </div>
           
+          {/* Add appointment type selector */}
+          <div className="form-group">
+            <label htmlFor="type">Appointment Type *</label>
+            <select
+              id="type"
+              name="type"
+              value={formData.type}
+              onChange={handleChange}
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                borderRadius: '4px',
+                borderLeft: `4px solid ${getAppointmentColor(formData.type)}`,
+                borderTop: '1px solid #ccc',
+                borderRight: '1px solid #ccc',
+                borderBottom: '1px solid #ccc'
+              }}
+              required
+            >
+              {APPOINTMENT_TYPES.map(type => (
+                <option key={type.id} value={type.id}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* Color indicator */}
+          <div className="form-group" style={{ marginTop: '-5px', marginBottom: '15px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              fontSize: '12px',
+              color: '#666'
+            }}>
+              <div style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '50%',
+                backgroundColor: getAppointmentColor(formData.type),
+                marginRight: '8px'
+              }}></div>
+              <span>Color: {APPOINTMENT_TYPES.find(t => t.id === formData.type)?.label}</span>
+            </div>
+          </div>
+          
           <div className="form-group time-inputs">
             <div className="time-input">
               <label htmlFor="startTime">Start Time *</label>
@@ -274,8 +356,8 @@ const AppointmentModal: React.FC<Props> = ({
                 onChange={handleChange}
                 required
                 step="60"
-                min={isToday && !isEditing 
-                  ? `${String(currentHour).padStart(2, "0")}:${String(currentMinute).padStart(2, "0")}` 
+                min={isToday && !isEditing
+                  ? `${String(currentHour).padStart(2, "0")}:${String(currentMinute).padStart(2, "0")}`
                   : undefined}
               />
             </div>
@@ -350,6 +432,10 @@ const AppointmentModal: React.FC<Props> = ({
               type="submit"
               className="save-btn"
               disabled={isSubmitting}
+              style={{
+                backgroundColor: getAppointmentColor(formData.type),
+                borderColor: getAppointmentColor(formData.type)
+              }}
             >
               {isSubmitting ? (
                 <>

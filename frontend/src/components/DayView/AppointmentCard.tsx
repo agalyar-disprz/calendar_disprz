@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Appointment } from "../../types/appointment";
+import { Appointment, getAppointmentColor } from "../../types/appointment";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PeopleIcon from "@mui/icons-material/People";
@@ -27,6 +27,9 @@ const AppointmentCard: React.FC<Props> = ({
   const cardRef = useRef<HTMLDivElement>(null);
   const [isCompact, setIsCompact] = useState(false);
   
+  // Get the color based on appointment type
+  const typeColor = getAppointmentColor(appointment.type);
+  
   // Calculate duration in minutes
   const durationMinutes =
     (endDate.getTime() - startDate.getTime()) / (1000 * 60);
@@ -43,10 +46,10 @@ const AppointmentCard: React.FC<Props> = ({
   const isComplete = isCompleted || (new Date(appointment.endTime) < new Date());
   
   // Styles for completed appointments
-  const completedStyles = isComplete ? {
-    borderLeftColor: '#8bc34a',
-    opacity: 0.8
-  } : {};
+  const cardStyles = {
+    borderLeftColor: isComplete ? '#8bc34a' : typeColor,
+    opacity: isComplete ? 0.8 : 1
+  };
 
   // Compact view for both short appointments and completed appointments
   const shouldUseCompactView = isCompact || (isComplete && durationMinutes < 60);
@@ -55,7 +58,7 @@ const AppointmentCard: React.FC<Props> = ({
     <div
       ref={cardRef}
       className={`appointment-card ${shouldUseCompactView ? 'appointment-card-compact' : ''} ${isComplete ? 'completed-appointment' : ''}`}
-      style={completedStyles}
+      style={cardStyles}
     >
       {shouldUseCompactView ? (
         // Compact horizontal layout

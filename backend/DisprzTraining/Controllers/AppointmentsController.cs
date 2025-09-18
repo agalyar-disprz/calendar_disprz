@@ -206,6 +206,7 @@ namespace DisprzTraining.Controllers
                 existingAppointment.EndTime = appointmentDto.EndTime;
                 existingAppointment.Location = appointmentDto.Location;
                 existingAppointment.Attendees = appointmentDto.Attendees;
+                existingAppointment.Type = appointmentDto.Type;
 
                 // Save changes
                 await _context.SaveChangesAsync();
@@ -278,4 +279,5 @@ public class AppointmentUpdateDto
     public DateTime EndTime { get; set; }
     public string Location { get; set; }
     public string Attendees { get; set; }
+    public string Type { get; set; }
 }

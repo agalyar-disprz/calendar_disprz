@@ -1,5 +1,5 @@
 import React from "react";
-import { Appointment } from "../../types/appointment";
+import { Appointment, getAppointmentColor, APPOINTMENT_TYPES } from "../../types/appointment";
 import AppointmentCard from "../DayView/AppointmentCard";
 import { Paper, Typography, Box } from "@mui/material";
 
@@ -97,7 +97,7 @@ const WeekView: React.FC<WeekViewProps> = ({
             <Paper elevation={1} sx={{ height: "100%", minHeight: "70vh" }}>
               {formatDayHeader(day)}
               <Box sx={{ p: 1 }}>
-                {/* Updated appointment rendering with completed status */}
+                {/* Updated appointment rendering with completed status and color coding */}
                 {getAppointmentsForDay(day).length > 0 ? (
                   getAppointmentsForDay(day)
                     .sort(
