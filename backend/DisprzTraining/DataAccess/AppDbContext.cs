@@ -23,11 +23,20 @@ namespace DisprzTraining.Data
                 .HasIndex(u => u.Username)
                 .IsUnique();
                 
-            // Simple foreign key relationship
-            modelBuilder.Entity<Appointment>()
-                .HasOne<User>()
-                .WithMany()
-                .HasForeignKey(a => a.UserId);
+            // Configure Appointment entity with explicit relationship
+            modelBuilder.Entity<Appointment>(entity =>
+            {
+                // Configure the foreign key relationship properly
+                entity.HasOne(a => a.User)
+                    .WithMany()
+                    .HasForeignKey(a => a.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                
+                // Configure Attendees as optional
+                entity.Property(a => a.Attendees)
+                    .IsRequired(false)
+                    .HasMaxLength(500); // Optional: limit the length
+            });
         }
     }
 }

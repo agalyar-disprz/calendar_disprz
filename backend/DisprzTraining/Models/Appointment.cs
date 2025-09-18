@@ -1,6 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace DisprzTraining.Models
 {
@@ -13,13 +13,23 @@ namespace DisprzTraining.Models
         
         public string Description { get; set; }
         
+        public string Location { get; set; }
+        
+        public string Attendees { get; set; }
+        
         [Required]
         public DateTime StartTime { get; set; }
         
         [Required]
         public DateTime EndTime { get; set; }
+        [Required]
+         public string Type { get; set; }
         
-        // Foreign key for User
+        // Foreign key
         public int UserId { get; set; }
+        
+        // Navigation property - should NOT have [Required] attribute
+        [JsonIgnore] // Add this to prevent serialization issues
+        public virtual User? User { get; set; }
     }
 }
