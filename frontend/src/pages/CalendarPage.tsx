@@ -44,7 +44,7 @@ const CalendarPage: React.FC = () => {
     loadAppointments();
     
     // Auto-refresh every 30 seconds
-    const interval = setInterval(loadAppointments, 30000);
+    const interval = setInterval(loadAppointments, 60000);
     return () => clearInterval(interval);
   }, [selectedDate]);
 
@@ -65,7 +65,7 @@ const toggleSidebar = () => {
   // Filter appointments for the UpcomingList only
   const filteredUpcomingAppointments = appointments.filter(appointment => {
     // Filter by type
-    const typeMatch = !appointment.type || selectedTypes.includes(appointment.type);
+    const typeMatch = appointment.type && selectedTypes.includes(appointment.type);
     
     // Filter by search term
     if (!searchTerm) return typeMatch;
@@ -83,7 +83,7 @@ const toggleSidebar = () => {
   const handleTypeToggle = (type: string) => {
     setSelectedTypes(prev =>
       prev.includes(type)
-        ? prev.filter(t => t !== type)
+        ? prev.filter(t => t === type)
         : [...prev, type]
     );
   };

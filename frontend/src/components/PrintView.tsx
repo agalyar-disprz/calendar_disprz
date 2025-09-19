@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { format, addDays, startOfWeek, isSameDay, startOfMonth, getDaysInMonth, isSameMonth } from 'date-fns';
 import { Appointment } from '../types/appointment';
+
 interface PrintViewProps {
   selectedDate: Date;
   appointments: any[];
@@ -31,7 +32,7 @@ const PrintView: React.FC<PrintViewProps> = ({
   const formatDateHeader = (date: Date) => {
     return format(date, 'MMMM d, yyyy');
   };
-  
+ 
   // Get appointments for a specific date
   const getAppointmentsForDate = (date: Date) => {
     const dateString = format(date, 'yyyy-MM-dd');
@@ -40,19 +41,19 @@ const PrintView: React.FC<PrintViewProps> = ({
       return appointmentDate === dateString;
     });
   };
-  
+ 
   // Format time range
   const formatTimeRange = (start: Date, end: Date) => {
     return `${format(start, 'h:mm a')} - ${format(end, 'h:mm a')}`;
   };
-  
+ 
   // Check if an appointment is completed
   const isAppointmentCompleted = (appointment: Appointment): boolean => {
     const now = new Date();
     const endTime = new Date(appointment.endTime);
     return endTime < now;
   };
-  
+ 
   // Render daily view
   const renderDailyView = () => {
     const dayAppointments = getAppointmentsForDate(selectedDate);
@@ -92,14 +93,14 @@ const PrintView: React.FC<PrintViewProps> = ({
       </div>
     );
   };
-  
+ 
   // Render weekly view - MODIFIED to only show days with appointments
   const renderWeeklyView = () => {
     const weekStart = startOfWeek(selectedDate);
     const allWeekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
     
     // Filter to only include days that have appointments
-    const daysWithAppointments = allWeekDays.filter(day => 
+    const daysWithAppointments = allWeekDays.filter(day =>
       getAppointmentsForDate(day).length > 0
     );
     
@@ -121,8 +122,8 @@ const PrintView: React.FC<PrintViewProps> = ({
           {format(weekStart, 'MMM d')} - {format(addDays(weekStart, 6), 'MMM d, yyyy')}
         </h2>
         
-        <div className="week-grid" style={{ 
-          gridTemplateColumns: `repeat(${daysWithAppointments.length}, 1fr)` 
+        <div className="week-grid" style={{
+          gridTemplateColumns: `repeat(${daysWithAppointments.length}, 1fr)`
         }}>
           {daysWithAppointments.map((day, index: number) => {
             const dayAppointments = getAppointmentsForDate(day);
@@ -140,15 +141,15 @@ const PrintView: React.FC<PrintViewProps> = ({
                           {format(new Date(appointment.startTime), 'h:mm a')}
                         </div>
                         <div className="appointment-title">
-                          {appointment.title.length > 20 
-                            ? `${appointment.title.substring(0, 18)}...` 
+                          {appointment.title.length > 20
+                            ? `${appointment.title.substring(0, 18)}...`
                             : appointment.title}
                           {isCompleted && <span className="appointment-completed">✓</span>}
                         </div>
                         {appointment.location && (
                           <div className="appointment-location">
-                            {appointment.location.length > 25 
-                              ? `${appointment.location.substring(0, 23)}...` 
+                            {appointment.location.length > 25
+                              ? `${appointment.location.substring(0, 23)}...`
                               : appointment.location}
                           </div>
                         )}
@@ -163,7 +164,7 @@ const PrintView: React.FC<PrintViewProps> = ({
       </div>
     );
   };
-  
+ 
   // Render monthly view - updated to only show dates with appointments
   const renderMonthlyView = () => {
     // Get the month start and end dates
@@ -246,40 +247,39 @@ const PrintView: React.FC<PrintViewProps> = ({
       </div>
     );
   };
-  
-  // Check if there are any appointments to display based on the view type
-  const hasAppointmentsToDisplay = () => {
-    if (viewType === 'daily') {
-      return getAppointmentsForDate(selectedDate).length > 0;
-    } else if (viewType === 'weekly') {
-      const weekStart = startOfWeek(selectedDate);
-      const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-      return weekDays.some(day => getAppointmentsForDate(day).length > 0);
-    } else { // monthly
-      return appointments.some(appointment => {
-        const appointmentDate = new Date(appointment.startTime);
-        return isSameMonth(appointmentDate, selectedDate);
-      });
-    }
-  };
-  
-  // If no appointments to display, show a message instead of empty content
-  if (!hasAppointmentsToDisplay()) {
-    return (
-      <div className="print-view print-no-appointments">
-        <h2>No Appointments to Display</h2>
-        <p className="empty-print-message">
-          There are no appointments scheduled for the selected {viewType === 'daily' ? 'day' : viewType === 'weekly' ? 'week' : 'month'}.
-        </p>
-      </div>
-    );
-  }
-  
+
+  // Directly render the appropriate view without the conditional check
   return (
     <div className="print-view">
-      {viewType === 'daily' ? renderDailyView() : 
-       viewType === 'weekly' ? renderWeeklyView() : 
-       renderMonthlyView()}
+      {viewType === 'daily' && getAppointmentsForDate(selectedDate).length === 0 ? (
+        <div className="print-no-appointments">
+          <h2>No Appointments for {formatDateHeader(selectedDate)}</h2>
+          <p className="empty-print-message">
+            There are no appointments scheduled for this day.
+          </p>
+        </div>
+      ) : viewType === 'weekly' && !Array.from({ length: 7 }, (_, i) => 
+          addDays(startOfWeek(selectedDate), i)).some(day => getAppointmentsForDate(day).length > 0) ? (
+        <div className="print-no-appointments">
+          <h2>No Appointments for Week of {format(startOfWeek(selectedDate), 'MMM d')} - {format(addDays(startOfWeek(selectedDate), 6), 'MMM d, yyyy')}</h2>
+          <p className="empty-print-message">
+            There are no appointments scheduled for this week.
+          </p>
+        </div>
+      ) : viewType === 'monthly' && !appointments.some(appointment => 
+          isSameMonth(new Date(appointment.startTime), selectedDate)) ? (
+        <div className="print-no-appointments">
+          <h2>No Appointments for {format(selectedDate, 'MMMM yyyy')}</h2>
+          <p className="empty-print-message">
+            There are no appointments scheduled for this month.
+          </p>
+        </div>
+      ) : (
+        // Render the appropriate view directly
+        viewType === 'daily' ? renderDailyView() :
+        viewType === 'weekly' ? renderWeeklyView() :
+        renderMonthlyView()
+      )}
     </div>
   );
 };

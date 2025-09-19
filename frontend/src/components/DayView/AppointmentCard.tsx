@@ -51,8 +51,75 @@ const AppointmentCard: React.FC<Props> = ({
     opacity: isComplete ? 0.8 : 1
   };
 
-  // Compact view for both short appointments and completed appointments
-  const shouldUseCompactView = isCompact || (isComplete && durationMinutes < 60);
+  // Always use compact view for better consistency
+  const shouldUseCompactView = true; // Always use compact view
+  
+  // Determine if tooltip should be shown (only for appointments <= 30 minutes)
+  const shouldShowTooltip = durationMinutes <= 30;
+
+  // Compact content for the card
+  const compactContent = (
+    <div className="appointment-compact-content">
+      <div className="appointment-compact-main">
+        <div className="appointment-compact-header">
+          {isComplete && <span className="appointment-compact-check">✓</span>}
+          <span className="appointment-compact-title">{appointment.title}</span>
+        </div>
+        
+        {/* First line: time and description */}
+        <div className="appointment-compact-details"style={{ marginTop: '2px' }}>
+          <span className="appointment-compact-time">{formatTime(startDate)}</span>
+          {appointment.description && (
+            <span className="appointment-compact-description"> - {appointment.description}</span>
+          )}
+        </div>
+        
+        {/* Second line: location and attendees */}
+        {(appointment.location || appointment.attendees) && (
+          <div className="appointment-compact-details" style={{ marginTop: '2px' }}>
+            {appointment.location && (
+              <span className="appointment-compact-location">@{appointment.location}</span>
+            )}
+            {appointment.attendees && (
+              <span className="appointment-compact-attendees" style={{ marginLeft: appointment.location ? '4px' : '0' }}>
+                <PeopleIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: '2px' }} />
+                {appointment.attendees.split(',').length} attendee{appointment.attendees.split(',').length > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {/* Action buttons */}
+      {!isComplete && onEdit && onDelete && (
+        <div className="appointment-actions">
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(appointment);
+            }}
+            aria-label="Edit appointment"
+            className="edit-button"
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(appointment.id);
+            }}
+            aria-label="Delete appointment"
+            color="error"
+            className="delete-button"
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div
@@ -61,86 +128,33 @@ const AppointmentCard: React.FC<Props> = ({
       style={cardStyles}
     >
       {shouldUseCompactView ? (
-        // Compact horizontal layout
-        <Tooltip
-          title={
-            <div>
-              <div><strong>{appointment.title}</strong></div>
-              <div>{formatTime(startDate)} - {formatTime(endDate)}</div>
-              {appointment.location && <div>Location: {appointment.location}</div>}
-              {appointment.attendees && (
-                <div>
-                  <PeopleIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                  Attendees: {appointment.attendees}
-                </div>
-              )}
-              {appointment.description && <div>{appointment.description}</div>}
-              {isComplete && <div style={{ color: '#8bc34a', fontStyle: 'italic' }}>Completed</div>}
-            </div>
-          }
-          arrow
-          placement="top"
-        >
-          <div className="appointment-compact-content">
-            <div className="appointment-compact-main">
-              <div className="appointment-compact-header">
-                {isComplete && <span className="appointment-compact-check">✓</span>}
-                <span className="appointment-compact-title">{appointment.title}</span>
-                <span className="appointment-compact-time">{formatTime(startDate)}</span>
+        // Conditionally wrap with Tooltip only for short appointments
+        shouldShowTooltip ? (
+          <Tooltip
+            title={
+              <div>
+                <div><strong>{appointment.title}</strong></div>
+                <div>{formatTime(startDate)} - {formatTime(endDate)}</div>
+                {appointment.location && <div>Location: {appointment.location}</div>}
+                {appointment.attendees && (
+                  <div>
+                    <PeopleIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: '4px' }} />
+                    Attendees: {appointment.attendees}
+                  </div>
+                )}
+                {appointment.description && <div>{appointment.description}</div>}
+                {isComplete && <div style={{ color: '#8bc34a', fontStyle: 'italic' }}>Completed</div>}
               </div>
-              
-              {/* Always show location, attendees and/or description if available */}
-              {(appointment.location || appointment.attendees || appointment.description) && (
-                <div className="appointment-compact-details">
-                  {appointment.location && (
-                    <span className="appointment-compact-location">@ {appointment.location}</span>
-                  )}
-                  {appointment.attendees && (
-                    <span className="appointment-compact-attendees">
-                      {appointment.location ? " • " : ""}
-                      <PeopleIcon fontSize="small" style={{ verticalAlign: 'middle', marginRight: '2px' }} />
-                      {appointment.attendees.split(',').length} attendee{appointment.attendees.split(',').length > 1 ? 's' : ''}
-                    </span>
-                  )}
-                  {appointment.description && (
-                    <span className="appointment-compact-description">
-                      {(appointment.location || appointment.attendees) ? " - " : ""}{appointment.description}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-            
-            {/* Action buttons */}
-            {!isComplete && onEdit && onDelete && (
-              <div className="appointment-actions">
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(appointment);
-                  }}
-                  aria-label="Edit appointment"
-                  className="edit-button"
-                >
-                  <EditIcon fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(appointment.id);
-                  }}
-                  aria-label="Delete appointment"
-                  color="error"
-                  className="delete-button"
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </div>
-            )}
-          </div>
-        </Tooltip>
+            }
+            arrow
+            placement="top"
+          >
+            {compactContent}
+          </Tooltip>
+        ) : (
+          // No tooltip for longer appointments
+          compactContent
+        )
       ) : (
         // Regular vertical layout for normal appointments
         <>
