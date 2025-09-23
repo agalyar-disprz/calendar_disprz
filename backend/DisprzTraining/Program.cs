@@ -75,6 +75,9 @@ builder.Services.ConfigureDependencyInjections();
 
 // Register AuthService
 builder.Services.AddScoped<IAuthService, AuthService>();
+// Add this line to the service registration section
+builder.Services.AddScoped<IRecurrenceService, RecurrenceService>();
+
 
 var app = builder.Build();
 

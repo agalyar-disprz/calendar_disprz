@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { TextField, Button, Typography, Paper, Box, Alert } from '@mui/material';
 import { login } from '../services/authService';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,8 +11,18 @@ const LoginPage: React.FC = () => {
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  
   const navigate = useNavigate();
+  const location = useLocation();
   const { login: authLogin } = useAuth();
+
+  // Check if user was redirected due to session expiration
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const expired = searchParams.get('expired') === 'true';
+    setSessionExpired(expired);
+  }, [location.search]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -23,7 +33,6 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
-
     try {
       const response = await login(formData);
       authLogin(response.data);
@@ -57,9 +66,15 @@ const LoginPage: React.FC = () => {
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Login
         </Typography>
-
+        
+        {sessionExpired && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Your session has expired. Please log in again to continue.
+          </Alert>
+        )}
+        
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
+        
         <Box component="form" onSubmit={handleSubmit}>
           <TextField
             margin="normal"
