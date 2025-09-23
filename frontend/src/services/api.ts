@@ -14,8 +14,7 @@ axios.interceptors.request.use(
     }
     return config;
   },
-  error => Promise.reject(error)
-);
+  error => Promise.reject(error));
 
 // Add response interceptor to handle token expiration
 axios.interceptors.response.use(
@@ -40,8 +39,7 @@ axios.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
-);
+  });
 
 // Auth API calls
 export const register = async (userData: RegisterFormData) => {
@@ -78,29 +76,30 @@ export const fetchAppointments = async () => {
 export const fetchAppointmentsWithDateRange = async (start?: Date, end?: Date) => {
   // Format dates as ISO strings if provided
   const startParam = start ? start.toISOString() : undefined;
-    let endDate = end;
+ 
+  let endDate = end;
   if (endDate) {
     endDate = new Date(endDate);
     endDate.setDate(endDate.getDate() + 1);
   }
   const endParam = end ? end.toISOString() : undefined;
-  
+ 
   // Build URL with query parameters
   let url = `${API_URL}/appointments`;
   const params = [];
-  
+ 
   if (startParam) {
     params.push(`start=${startParam}`);
   }
-  
+ 
   if (endParam) {
     params.push(`end=${endParam}`);
   }
-  
+ 
   if (params.length > 0) {
     url += `?${params.join('&')}`;
   }
-  
+ 
   console.log(`Fetching appointments with date range: ${url}`);
   return axios.get<Appointment[]>(url);
 };
@@ -112,25 +111,54 @@ export const fetchAppointmentsByDay = async (date: Date) => {
 };
 
 // Add appointment with proper error handling
-export const addAppointment = async (appointment: NewAppointment): Promise<{ data: Appointment; conflict?: boolean }> => {
+export const addAppointment = async (appointment: NewAppointment & { date?: string }): Promise<{ data: Appointment; conflict?: boolean }> => {
   try {
-    // Send dates as local datetime strings without timezone conversion
-    const appointmentData = {
+    // Prepare appointment data
+    const appointmentData: Record<string, any> = {
       title: appointment.title || '',
-      startTime: appointment.startTime, // Send as-is without toISOString()
-      endTime: appointment.endTime,     // Send as-is without toISOString()
       description: appointment.description || '',
       location: appointment.location || '',
       attendees: appointment.attendees || '',
-      type: appointment.type || 'other', // Default to 'other' if not provided
-      
-      // Add recurrence properties
+      type: appointment.type || 'other',
       isRecurring: appointment.isRecurring || false,
-      recurrenceInterval: appointment.recurrenceInterval,
-      recurrenceEndDate: appointment.recurrenceEndDate
+      recurrenceInterval: appointment.recurrenceInterval
     };
+
+    // Handle date and time fields
+    if (appointment.date) {
+      // If a specific date is provided, use it and adjust startTime/endTime to match this date
+      appointmentData.date = appointment.date;
+      
+      // Extract time portions from the original startTime and endTime
+      const startTimeObj = new Date(appointment.startTime);
+      const endTimeObj = new Date(appointment.endTime);
+      
+      // Create new DateTime strings with the correct date but original times (without timezone conversion)
+      const startHours = String(startTimeObj.getHours()).padStart(2, '0');
+      const startMinutes = String(startTimeObj.getMinutes()).padStart(2, '0');
+      const startSeconds = String(startTimeObj.getSeconds()).padStart(2, '0');
+      
+      const endHours = String(endTimeObj.getHours()).padStart(2, '0');
+      const endMinutes = String(endTimeObj.getMinutes()).padStart(2, '0');
+      const endSeconds = String(endTimeObj.getSeconds()).padStart(2, '0');
+      
+      // Format as ISO string without timezone conversion
+      appointmentData.startTime = `${appointment.date}T${startHours}:${startMinutes}:${startSeconds}`;
+      appointmentData.endTime = `${appointment.date}T${endHours}:${endMinutes}:${endSeconds}`;
+    } else {
+      // If no specific date is provided, extract from startTime
+      const startDate = new Date(appointment.startTime);
+      appointmentData.date = startDate.toISOString().split('T')[0];
+      appointmentData.startTime = appointment.startTime;
+      appointmentData.endTime = appointment.endTime;
+    }
     
-    console.log('Sending appointment data with recurrence:', appointmentData);
+    // Add recurrence end date if provided
+    if (appointment.recurrenceEndDate) {
+      appointmentData.recurrenceEndDate = appointment.recurrenceEndDate;
+    }
+    
+    console.log('Sending appointment data with corrected date/time:', appointmentData);
     
     const response = await axios.post<Appointment>(`${API_URL}/appointments`, appointmentData);
     return { data: response.data };
@@ -188,7 +216,7 @@ export const addAppointment = async (appointment: NewAppointment): Promise<{ dat
     throw error;
   }
 };
-
+// Update appointment with proper error handling
 // Update appointment with proper error handling
 export const updateAppointment = async (id: number, appointment: Partial<Appointment>): Promise<{ data: Appointment; conflict?: boolean }> => {
   try {
@@ -211,17 +239,53 @@ export const updateAppointment = async (id: number, appointment: Partial<Appoint
     if (appointmentData.recurrenceEndDate !== undefined) updatePayload.recurrenceEndDate = appointmentData.recurrenceEndDate;
     
     // Add update all future events flag if editing a recurring appointment
-    updatePayload.updateAllFutureEvents = appointment.isRecurring && true;
+    if (appointment.isRecurring) {
+      updatePayload.updateAllFutureEvents = true;
+    }
     
-    // Send dates as-is without timezone conversion
-    if (appointmentData.startTime !== undefined) {
+    // Handle date and time fields with proper date synchronization
+    if (appointmentData.date) {
+      // If a specific date is provided, use it and adjust startTime/endTime to match this date
+      updatePayload.date = appointmentData.date;
+      
+      if (appointmentData.startTime && appointmentData.endTime) {
+        // Extract time portions from the original startTime and endTime
+        const startTimeObj = new Date(appointmentData.startTime);
+        const endTimeObj = new Date(appointmentData.endTime);
+        
+        // Create new DateTime strings with the correct date but original times (without timezone conversion)
+        const startHours = String(startTimeObj.getHours()).padStart(2, '0');
+        const startMinutes = String(startTimeObj.getMinutes()).padStart(2, '0');
+        const startSeconds = String(startTimeObj.getSeconds()).padStart(2, '0');
+        
+        const endHours = String(endTimeObj.getHours()).padStart(2, '0');
+        const endMinutes = String(endTimeObj.getMinutes()).padStart(2, '0');
+        const endSeconds = String(endTimeObj.getSeconds()).padStart(2, '0');
+        
+        // Format as ISO string without timezone conversion
+        updatePayload.startTime = `${appointmentData.date}T${startHours}:${startMinutes}:${startSeconds}`;
+        updatePayload.endTime = `${appointmentData.date}T${endHours}:${endMinutes}:${endSeconds}`;
+      }
+    } else if (appointmentData.startTime) {
+      // If no date but startTime is provided, extract date from startTime
+      const startDate = new Date(appointmentData.startTime);
+      updatePayload.date = startDate.toISOString().split('T')[0];
       updatePayload.startTime = appointmentData.startTime;
-    }
-    if (appointmentData.endTime !== undefined) {
-      updatePayload.endTime = appointmentData.endTime;
+      
+      if (appointmentData.endTime !== undefined) {
+        updatePayload.endTime = appointmentData.endTime;
+      }
+    } else {
+      // If only individual time fields are provided, include them as-is
+      if (appointmentData.startTime !== undefined) {
+        updatePayload.startTime = appointmentData.startTime;
+      }
+      if (appointmentData.endTime !== undefined) {
+        updatePayload.endTime = appointmentData.endTime;
+      }
     }
     
-    console.log(`Updating appointment ${id} with data (including recurrence):`, updatePayload);
+    console.log(`Updating appointment ${id} with corrected data:`, updatePayload);
     
     const response = await axios.put<Appointment>(`${API_URL}/appointments/${id}`, updatePayload);
     
@@ -288,7 +352,6 @@ export const updateAppointment = async (id: number, appointment: Partial<Appoint
     throw error;
   }
 };
-
 // Delete appointment
 export const deleteAppointment = async (id: number) => {
   try {
@@ -383,7 +446,7 @@ export const getErrorMessage = (error: unknown): string => {
       switch (status) {
         case 401:
           return 'Unauthorized. Please log in again.';
-        case 403:
+                case 403:
           return 'You do not have permission to perform this action.';
         case 404:
           return 'Resource not found.';
@@ -403,3 +466,4 @@ export const getErrorMessage = (error: unknown): string => {
  
   return error instanceof Error ? error.message : 'An unknown error occurred';
 };
+

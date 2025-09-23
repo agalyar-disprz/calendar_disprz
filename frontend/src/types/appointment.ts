@@ -8,6 +8,7 @@ export interface Appointment {
   id: number;
   title: string;
   description: string;
+  date?: string;
   startTime: string;
   endTime: string;
   location: string;

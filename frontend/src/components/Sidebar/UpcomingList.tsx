@@ -10,45 +10,44 @@ interface UpcomingListProps {
   appointments: Appointment[];
   onEdit?: (appointment: Appointment) => void;
   onDelete?: (id: number) => void;
+  selectedDate?: Date; // Date selected from mini calendar
 }
 
 const UpcomingList: React.FC<UpcomingListProps> = ({
   searchTerm,
   appointments,
   onEdit,
-  onDelete
+  onDelete,
+  selectedDate
 }) => {
   const { currentUser } = useAuth();
   
-  // ✅ Filter today's appointments only
-  const today = new Date();
-  const todayStart = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-    0, 0, 0
-  );
-  const todayEnd = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-    23, 59, 59, 999
-  );
+  // Use selectedDate if provided, otherwise default to today
+  const targetDate = selectedDate || new Date();
   
-  // Get only today's meetings
-  const todaysMeetings = appointments.filter((appointment) => {
+  // Function to check if two dates are the same day
+  const isSameDay = (date1: Date, date2: Date) => {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  };
+  
+  // Filter appointments for the selected day
+  const dayMeetings = appointments.filter((appointment) => {
     const appointmentDate = new Date(appointment.startTime);
-    return appointmentDate >= todayStart && appointmentDate <= todayEnd;
+    return isSameDay(appointmentDate, targetDate);
   });
   
-  // Calculate completed meetings for today only
+  // Calculate completed meetings for the selected day
   const [completedCount, setCompletedCount] = useState<number>(0);
   
   useEffect(() => {
     const updateCompleted = () => {
       const now = new Date();
-      // Only count meetings that are scheduled for today AND have ended
-      const completed = todaysMeetings.filter(
+      // Only count meetings that have ended
+      const completed = dayMeetings.filter(
         (meeting) => new Date(meeting.endTime) < now
       ).length;
       setCompletedCount(completed);
@@ -56,13 +55,13 @@ const UpcomingList: React.FC<UpcomingListProps> = ({
     
     updateCompleted(); // initial calculation
     
-    // ✅ Auto-update completed count every 1 min
+    // Auto-update completed count every 1 min
     const interval = setInterval(updateCompleted, 60000);
     return () => clearInterval(interval);
-  }, [todaysMeetings]);
+  }, [dayMeetings]);
 
   // Sort by start time
-  const sortedMeetings = [...todaysMeetings].sort(
+  const sortedMeetings = [...dayMeetings].sort(
     (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
   );
 
@@ -102,13 +101,39 @@ const UpcomingList: React.FC<UpcomingListProps> = ({
     return titleMatch || locationMatch || timeMatch || descriptionMatch || attendeesMatch;
   });
 
+  // Format the date for display
+  const formatDate = (date: Date) => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (isSameDay(date, today)) {
+      return "Today's";
+    } else if (isSameDay(date, tomorrow)) {
+      return "Tomorrow's";
+    } else if (isSameDay(date, yesterday)) {
+      return "Yesterday's";
+    } else {
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+  };
+
   return (
     <div className="upcoming-list">
-      <h3>Today's Meetings ({completedCount} of {todaysMeetings.length} completed)</h3>
+      <h3>{formatDate(targetDate)} Meetings ({completedCount} of {dayMeetings.length} completed)</h3>
       
       {filteredMeetings.length === 0 ? (
         <div className="no-results">
-          {searchTerm ? `No meetings found matching "${searchTerm}"` : "No meetings scheduled for today"}
+          {searchTerm 
+            ? `No meetings found matching "${searchTerm}"` 
+            : `No meetings scheduled for ${formatDate(targetDate).toLowerCase()}`}
         </div>
       ) : (
         <ul>
@@ -116,7 +141,6 @@ const UpcomingList: React.FC<UpcomingListProps> = ({
             const startTime = new Date(meeting.startTime);
             const endTime = new Date(meeting.endTime);
             const isCompleted = endTime < new Date();
-
             return (
               <li key={meeting.id} className={isCompleted ? "completed" : ""}>
                 <Tooltip
@@ -162,10 +186,10 @@ const UpcomingList: React.FC<UpcomingListProps> = ({
                       )}
                     </div>
                     {meeting.attendees && (
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          display: 'block', 
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          display: 'block',
                           color: 'text.secondary',
                           fontSize: '0.7rem',
                           mt: 0.5,
@@ -177,7 +201,6 @@ const UpcomingList: React.FC<UpcomingListProps> = ({
                     )}
                   </Box>
                 </Tooltip>
-
                 {!isCompleted && onEdit && onDelete && (
                   <div className="meeting-actions">
                     <IconButton

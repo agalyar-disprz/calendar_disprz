@@ -7,11 +7,11 @@ import TimelineView from "../components/DayView/TimelineView";
 import WeekView from "../components/Header/WeekView";
 import MonthView from "../components/Header/MonthView";
 import AppointmentModal from "../components/Modal/AppointmentModal";
-import { 
-  fetchAppointments, 
-  fetchAppointmentsWithDateRange, 
-  deleteAppointment, 
-  deleteRecurringAppointment 
+import {
+  fetchAppointments,
+  fetchAppointmentsWithDateRange,
+  deleteAppointment,
+  deleteRecurringAppointment
 } from "../services/api";
 import { Appointment, APPOINTMENT_TYPES } from "../types/appointment";
 
@@ -26,15 +26,15 @@ const CalendarPage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   // Add state for sidebar toggle
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  
+ 
   // Initialize with all appointment types selected
   const [selectedTypes, setSelectedTypes] = useState<string[]>(
     APPOINTMENT_TYPES.map(type => type.id)
   );
-  
+ 
   // Ref to track if auto-refresh is paused
   const autoRefreshPaused = useRef(false);
-  
+ 
   // Fetch appointments when selected date changes or when modal closes
   useEffect(() => {
     const loadAppointments = async () => {
@@ -98,7 +98,7 @@ const CalendarPage: React.FC = () => {
       if (interval) clearInterval(interval);
     };
   }, [selectedDate, showModal, view]);
-  
+ 
   // Update autoRefreshPaused ref when modal state changes
   useEffect(() => {
     autoRefreshPaused.current = showModal;
@@ -384,12 +384,13 @@ const CalendarPage: React.FC = () => {
           onTypeToggle={handleTypeToggle}
         />
         
-        {/* Pass filtered appointments to UpcomingList */}
+        {/* Pass filtered appointments and selectedDate to UpcomingList */}
         <UpcomingList
           searchTerm={searchTerm}
           appointments={filteredUpcomingAppointments} // Use filtered appointments
           onEdit={handleEditAppointment}
           onDelete={handleDeleteAppointment}
+          selectedDate={selectedDate} // Pass the selected date to UpcomingList
         />
       </aside>
       {/* Add this overlay for mobile */}
@@ -401,7 +402,7 @@ const CalendarPage: React.FC = () => {
           selectedDate={selectedDate}
           onPrevDay={handlePrevDay}
           onNextDay={handleNextDay}
-                    onPrevWeek={handlePrevWeek}
+          onPrevWeek={handlePrevWeek}
           onNextWeek={handleNextWeek}
           onPrevMonth={handlePrevMonth}
           onNextMonth={handleNextMonth}
