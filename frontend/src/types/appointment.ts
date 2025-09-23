@@ -1,24 +1,41 @@
+export enum RecurrenceInterval {
+  Daily = 0,
+  Weekly = 1,
+  Monthly = 2
+}
+
 export interface Appointment {
   id: number;
   title: string;
-  startTime: string; // ISO string
-  endTime: string;   // ISO string
-  description?: string;
-  location?: string;
-  attendees?: string;
-  type: string;     // Add appointment type field
+  description: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  attendees: string;
+  type: string;
+  userId: number;
+  
+  // Recurrence properties
+  isRecurring: boolean;
+  recurrenceInterval: RecurrenceInterval;
+  recurrenceEndDate?: string;
+  parentAppointmentId?: number;
 }
 
 export interface NewAppointment {
   title: string;
-  startTime: string; // ISO string
-  endTime: string;   // ISO string
-  description?: string;
-  location?: string;
-  attendees?: string;
-  type: string;     // Add appointment type field
+  description: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  attendees: string;
+  type: string;
+  
+  // Recurrence properties
+  isRecurring: boolean;
+  recurrenceInterval: RecurrenceInterval;
+  recurrenceEndDate?: string;
 }
-
 // Define appointment types and their colors
 export const APPOINTMENT_TYPES = [
   { id: 'meeting', label: 'Meeting', color: '#4285F4' },       // Blue

@@ -7,13 +7,40 @@ const API_URL = 'http://localhost:5169/api';
 // Configure axios defaults
 axios.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('token');
+    // Use sessionStorage instead of localStorage
+    const token = sessionStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   error => Promise.reject(error)
+);
+
+// Add response interceptor to handle token expiration
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<any>;
+      
+      // Check if error is due to token expiration (401 Unauthorized)
+      if (axiosError.response?.status === 401) {
+        console.log('Token expired or invalid. Redirecting to login...');
+        
+        // Clear auth data
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+        
+        // Redirect to login page
+        window.location.href = '/login?expired=true';
+        
+        // Return a clearer error message
+        return Promise.reject(new Error('Your session has expired. Please log in again.'));
+      }
+    }
+    return Promise.reject(error);
+  }
 );
 
 // Auth API calls
@@ -24,7 +51,10 @@ export const register = async (userData: RegisterFormData) => {
 export const login = async (userData: LoginFormData) => {
   const response = await axios.post<User>(`${API_URL}/auth/login`, userData);
   if (response.data && response.data.token) {
-    localStorage.setItem('token', response.data.token);
+    // Use sessionStorage instead of localStorage
+    sessionStorage.setItem('token', response.data.token);
+    // Also store user data in sessionStorage
+    sessionStorage.setItem('user', JSON.stringify(response.data));
   }
   return response;
 };
@@ -34,12 +64,45 @@ export const getCurrentUser = async () => {
 };
 
 export const logout = () => {
-  localStorage.removeItem('token');
+  // Clear from sessionStorage instead of localStorage
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
 };
 
 // Appointment API calls
 export const fetchAppointments = async () => {
   return axios.get<Appointment[]>(`${API_URL}/appointments`);
+};
+
+// Add this function to fetch appointments with date range parameters
+export const fetchAppointmentsWithDateRange = async (start?: Date, end?: Date) => {
+  // Format dates as ISO strings if provided
+  const startParam = start ? start.toISOString() : undefined;
+    let endDate = end;
+  if (endDate) {
+    endDate = new Date(endDate);
+    endDate.setDate(endDate.getDate() + 1);
+  }
+  const endParam = end ? end.toISOString() : undefined;
+  
+  // Build URL with query parameters
+  let url = `${API_URL}/appointments`;
+  const params = [];
+  
+  if (startParam) {
+    params.push(`start=${startParam}`);
+  }
+  
+  if (endParam) {
+    params.push(`end=${endParam}`);
+  }
+  
+  if (params.length > 0) {
+    url += `?${params.join('&')}`;
+  }
+  
+  console.log(`Fetching appointments with date range: ${url}`);
+  return axios.get<Appointment[]>(url);
 };
 
 // Fetch appointments for a specific day
@@ -58,11 +121,16 @@ export const addAppointment = async (appointment: NewAppointment): Promise<{ dat
       endTime: appointment.endTime,     // Send as-is without toISOString()
       description: appointment.description || '',
       location: appointment.location || '',
-      attendees: appointment.attendees || ''
-      , type: appointment.type || 'other' // Default to 'other' if not provided
+      attendees: appointment.attendees || '',
+      type: appointment.type || 'other', // Default to 'other' if not provided
+      
+      // Add recurrence properties
+      isRecurring: appointment.isRecurring || false,
+      recurrenceInterval: appointment.recurrenceInterval,
+      recurrenceEndDate: appointment.recurrenceEndDate
     };
     
-    console.log('Sending appointment data:', appointmentData);
+    console.log('Sending appointment data with recurrence:', appointmentData);
     
     const response = await axios.post<Appointment>(`${API_URL}/appointments`, appointmentData);
     return { data: response.data };
@@ -91,15 +159,15 @@ export const addAppointment = async (appointment: NewAppointment): Promise<{ dat
               return `${field}: ${msgs.join(', ')}`;
             })
             .join('; ');
-          
+            
           throw new Error(`Validation failed: ${errorMessages}`);
         }
         
         // Handle other error formats
         throw new Error(
-          errorData?.error || 
-          errorData?.message || 
-          errorData?.title || 
+          errorData?.error ||
+          errorData?.message ||
+          errorData?.title ||
           'Validation error occurred'
         );
       }
@@ -137,6 +205,14 @@ export const updateAppointment = async (id: number, appointment: Partial<Appoint
     if (appointmentData.attendees !== undefined) updatePayload.attendees = appointmentData.attendees;
     if (appointmentData.type !== undefined) updatePayload.type = appointmentData.type;
     
+    // Add recurrence properties
+    if (appointmentData.isRecurring !== undefined) updatePayload.isRecurring = appointmentData.isRecurring;
+    if (appointmentData.recurrenceInterval !== undefined) updatePayload.recurrenceInterval = appointmentData.recurrenceInterval;
+    if (appointmentData.recurrenceEndDate !== undefined) updatePayload.recurrenceEndDate = appointmentData.recurrenceEndDate;
+    
+    // Add update all future events flag if editing a recurring appointment
+    updatePayload.updateAllFutureEvents = appointment.isRecurring && true;
+    
     // Send dates as-is without timezone conversion
     if (appointmentData.startTime !== undefined) {
       updatePayload.startTime = appointmentData.startTime;
@@ -145,7 +221,7 @@ export const updateAppointment = async (id: number, appointment: Partial<Appoint
       updatePayload.endTime = appointmentData.endTime;
     }
     
-    console.log(`Updating appointment ${id} with data:`, updatePayload);
+    console.log(`Updating appointment ${id} with data (including recurrence):`, updatePayload);
     
     const response = await axios.put<Appointment>(`${API_URL}/appointments/${id}`, updatePayload);
     
@@ -178,15 +254,15 @@ export const updateAppointment = async (id: number, appointment: Partial<Appoint
               return `${field}: ${msgs.join(', ')}`;
             })
             .join('; ');
-          
+            
           throw new Error(`Validation failed: ${errorMessages}`);
         }
         
         // Handle other error formats
         throw new Error(
-          errorData?.error || 
-          errorData?.message || 
-          errorData?.title || 
+          errorData?.error ||
+          errorData?.message ||
+          errorData?.title ||
           errorData || // Include raw error data if it's a string
           'Validation error occurred'
         );
@@ -233,13 +309,46 @@ export const deleteAppointment = async (id: number) => {
   }
 };
 
+// Add a function to delete recurring appointments with option to delete all future occurrences
+export const deleteRecurringAppointment = async (id: number, deleteAllFuture: boolean = false) => {
+  try {
+    return await axios.delete(`${API_URL}/appointments/${id}?deleteAllFuture=${deleteAllFuture}`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<any>;
+      
+      if (axiosError.response?.status === 404) {
+        throw new Error('Appointment not found. It may have already been deleted.');
+      }
+      
+      if (axiosError.response?.status === 401) {
+        throw new Error('Unauthorized. Please log in again.');
+      }
+    }
+    throw error;
+  }
+};
+
 // Helper function to set auth token
 export const setAuthToken = (token: string | null) => {
   if (token) {
-    localStorage.setItem('token', token);
+    // Use sessionStorage instead of localStorage
+    sessionStorage.setItem('token', token);
   } else {
-    localStorage.removeItem('token');
+    // Clear from sessionStorage instead of localStorage
+    sessionStorage.removeItem('token');
   }
+};
+
+// Add this function to your api.ts file
+// Fetch recurring appointments for a date range
+export const fetchRecurringAppointments = async (startDate: Date, endDate: Date) => {
+  const formattedStartDate = startDate.toISOString();
+  const formattedEndDate = endDate.toISOString();
+ 
+  return axios.get<Appointment[]>(
+    `${API_URL}/appointments/recurring?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
+  );
 };
 
 // Enhanced error message helper
@@ -291,6 +400,6 @@ export const getErrorMessage = (error: unknown): string => {
       return axiosError.message || 'An unknown error occurred';
     }
   }
-  
+ 
   return error instanceof Error ? error.message : 'An unknown error occurred';
 };

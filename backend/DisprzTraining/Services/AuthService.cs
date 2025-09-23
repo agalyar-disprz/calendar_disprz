@@ -35,11 +35,11 @@ namespace DisprzTraining.Services
             // Check if email already exists
             if (await _context.Users.AnyAsync(u => u.Email == registerDto.Email))
                 throw new Exception("Email already exists");
-                
+            
             // Check if username already exists
             if (await _context.Users.AnyAsync(u => u.Username == registerDto.Username))
                 throw new Exception("Username already exists");
-                
+            
             // Create new user
             var user = new User
             {
@@ -69,17 +69,17 @@ namespace DisprzTraining.Services
         {
             // Find user by email or username
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => 
-                    u.Email == loginDto.UsernameOrEmail || 
+                .FirstOrDefaultAsync(u =>
+                    u.Email == loginDto.UsernameOrEmail ||
                     u.Username == loginDto.UsernameOrEmail);
                     
             if (user == null)
                 throw new Exception("Invalid credentials");
-                
+            
             // Verify password
             if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
                 throw new Exception("Invalid credentials");
-                
+            
             // Return user with token
             return new UserDTO
             {
@@ -98,7 +98,7 @@ namespace DisprzTraining.Services
             
             if (user == null)
                 throw new Exception("User not found");
-                
+            
             return new UserDTO
             {
                 Id = user.Id,
@@ -114,14 +114,18 @@ namespace DisprzTraining.Services
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(7);
+            
+            // Changed from 7 days to 10 minutes
+            var expires = DateTime.Now.AddMinutes(10);
             
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Name, user.Username)
+                new Claim(ClaimTypes.Name, user.Username),
+                // Add NameIdentifier claim to match what's used in controllers
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
             
             var token = new JwtSecurityToken(
